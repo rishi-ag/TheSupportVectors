@@ -3,6 +3,19 @@ library(dplyr)
 #set WD
 setwd("C:/Users/Rishabh/Documents/GitHub/TheSupportVectors/")
 
+std.ang <- function(x) {
+  #function to standrdize angular data 
+  m.sin <- mean(sin(x))
+  m.cos <- mean(cos(x))
+  
+  m.x <- atan(m.sin/m.cos)
+  
+  R <- sqrt(m.sin^2 + m.cos^2)
+  
+  s.d <- sqrt(-2 * log(R))
+  
+  (x - m.x) / s.d
+}
 
 preprocess <- function() {
   #Read Data
@@ -18,10 +31,15 @@ preprocess <- function() {
   features.test <- select(data.test, -id)
   #Standardise function
   
+  #Convert slope and aspect to radians
+  features.train[,2:3] <- features.train[,2:3] * (pi/180)
+  features.test[,2:3] <- features.test[,2:3] * (pi/180)
   
   #There are 10 quantitative variables. Standardise them
-  features.train[,1:10] <- apply(features.train[,1:10], 2, function(x) (x - mean(x)) / sd(x))
-  features.test[,1:10] <- apply(features.test[,1:10], 2, function(x) (x - mean(x)) / sd(x)) 
+  features.train[,2:3] <- apply(features.train[,2:3], 2, function(x) std.ang(x))
+  features.test[,2:3] <- apply(features.test[,2:3], 2, function(x) std.ang(x))
+  features.train[,c(1, 4:10)] <- apply(features.train[,1:10], 2, function(x) (x - mean(x)) / sd(x))
+  features.test[,c(1, 4:10)] <- apply(features.test[,1:10], 2, function(x) (x - mean(x)) / sd(x)) 
   
   #rename variables
   names(features.test)[1:10] <- paste0(names(features.test)[1:10], "_std")
@@ -32,5 +50,3 @@ preprocess <- function() {
   write.csv(x = labels.train, file = "data/train_labels.csv")
   write.csv(x = features.test, file = "data/test_features_std.csv")
 }
-
-preprocess()
