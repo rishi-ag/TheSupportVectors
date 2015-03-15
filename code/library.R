@@ -4,19 +4,6 @@ library("dplyr")
 #setwd("C:/Users/Rishabh/Documents/GitHub/TheSupportVectors/")
 # setwd("D:/master/kaggle/TheSupportVectors")
 
-std.ang <- function(x) {
-  #function to standrdize angular data 
-  m.sin <- mean(sin(x))
-  m.cos <- mean(cos(x))
-  
-  m.x <- atan(m.sin/m.cos)
-  
-  R <- sqrt(m.sin^2 + m.cos^2)
-  
-  s.d <- sqrt(-2 * log(R))
-  
-  return((x - m.x) / s.d)
-}
 
 preprocess <- function() {
   #Function produces three files. One where A test label file. Two features file. One where 
@@ -35,20 +22,27 @@ preprocess <- function() {
   features.test.std <- features.test
   
   #Standardise function
-  #Convert slope and aspect to radians
-  features.train.std[,2:3] <- features.train.std[,2:3] * (pi/180)
-  features.test.std[,2:3] <- features.test.std[,2:3] * (pi/180)
+  #Convert aspect to radians
+  features.train.std[,2] <- features.train.std[,2] * (pi/180)
+  features.test.std[,2] <- features.test.std[,2] * (pi/180)
   
-  #There are 10 quantitative variables. Standardise them
-  features.train.std[,2:3] <- apply(features.train.std[,2:3], 2, function(x) std.ang(x))
-  features.train.std[,c(1, 4:10)] <- apply(features.train.std[,c(1, 4:10)], 2, function(x) (x - mean(x)) / sd(x))
-  features.test.std[,2:3] <- apply(features.test.std[,2:3], 2, function(x) std.ang(x))
-  features.test.std[,c(1, 4:10)] <- apply(features.test.std[,c(1, 4:10)], 2, function(x) (x - mean(x)) / sd(x)) 
+  #There are 10 quantitative variables. Standardise them. Aspect converted to sin and cos
+  features.train.std[,c(1, 3:10)] <- apply(features.train.std[,c(1, 3:10)], 2, function(x) (x - mean(x)) / sd(x))
+  features.train.std$sin<-sin(features.train.std[,2])
+  features.train.std$cos<-cos(features.train.std[,2])
+  
+  features.test.std[,c(1, 3:10)] <- apply(features.test.std[,c(1, 3:10)], 2, function(x) (x - mean(x)) / sd(x)) 
+  features.test.std$sin<-sin(features.test.std[,2])
+  features.test.std$cos<-cos(features.test.std[,2])
   
   #rename standardised variables
   names(features.train.std)[1:10] <- paste0(names(features.train.std)[1:10], "_std")
   names(features.test.std)[1:10] <- paste0(names(features.test.std)[1:10], "_std")
   
+  #remove aspect var
+  features.train.std <- select(features.train.std, -aspect_std)
+  features.test.std <- select(features.test.std, -aspect_std)
+    
   #save files to /data
   write.csv(x = features.train.std, file = "data/train_features_std.csv", row.names = FALSE)
   write.csv(x = labels.train, file = "data/train_labels.csv", row.names = FALSE)
