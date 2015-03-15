@@ -3,7 +3,9 @@ if(!require("doParallel"))install.packages("doParallel")
 if(!require("reshape2"))install.packages("reshape2")
 if(!require("ggplot2"))install.packages("ggplot2")
 if(!require("caret"))install.packages("caret")
-library("dplyr")
+if(!require("dplyr"))install.packages("dplyr")
+if(!require("ggthemes"))install.packages("ggthemes")
+
 
 # setwd("D:/master/kaggle/TheSupportVectors")
 source("code/library.R")
