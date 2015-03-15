@@ -1,7 +1,8 @@
 library("dplyr")
 
 #set WD
-setwd("C:/Users/Rishabh/Documents/GitHub/TheSupportVectors/")
+#setwd("C:/Users/Rishabh/Documents/GitHub/TheSupportVectors/")
+# setwd("D:/master/kaggle/TheSupportVectors")
 
 std.ang <- function(x) {
   #function to standrdize angular data 
