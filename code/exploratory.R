@@ -87,7 +87,13 @@ par(mfrow=c(2,5))
 for (i in (2:11)){
     boxplot(train[[i]]~train$Cover_Type,main=names(train)[i])
 }
-
+#save plot
+jpeg(filename = 'plots/soil_explore.jpg', units = "in", width = 5, height = 5, res = 400)
+par(mfrow=c(2,5))
+for (i in (2:11)){
+    boxplot(train[[i]]~train$Cover_Type,main=names(train)[i])
+}
+dev.off()
 
 
 # Data per wild area
@@ -95,6 +101,14 @@ par(mfrow=c(2,5))
 for (i in (2:11)){
     boxplot(train[[i]]~train$area,main=names(train)[i])
 }
+#save plot
+jpeg(filename = 'plots/area_explore.jpg', units = "in", width = 5, height = 5, res = 400)
+par(mfrow=c(2,5))
+for (i in (2:11)){
+    boxplot(train[[i]]~train$area,main=names(train)[i])
+}
+dev.off()
+
 
 soil_area<- train %>%
     group_by(area) %>%
@@ -161,8 +175,11 @@ soil_pct_area<-subset(soil_pct_area,select=-nobs)
 pairs(train[,c(2:11,57)],pch=19,alpha=0.2)
 
 cor<-cor(train[,c(2:11)])
-cor
-heatmap(cor)
+plot3<-heatmap(cor)
+#save plot
+jpeg(filename = 'plots/heatmap_explore.jpg', units = "in", width = 5, height = 5, res = 400)
+plot3
+dev.off()
 
 # Categories vs areas
 cat_area<- train %>%
@@ -182,3 +199,5 @@ par(mfrow=c(1,1))
 plot(nobs~ Cover_Type,data=cat_area,type="p")
 points(cat_area$Cover_Type,data=cat_area,type="p")
 cat_area
+
+

@@ -24,7 +24,7 @@ plot.glmnet(model)
 #set up cluster
 cores <- detectCores()
 cl <- makeCluster(cores)
-clusterExport(cl, list("labels", "features", "features.std", "compare.k", "class", "knn.cv"), envir = environment())
+clusterExport(cl, list("labels", "features", "features.std", "cv.glmnet", "glmnet", "lambda"), envir = environment())
 registerDoParallel(cl)
 
 # lambda 0 is LASSO, alpha 1 is Ridge
