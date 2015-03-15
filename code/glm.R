@@ -26,7 +26,7 @@ plot.glmnet(model)
 dev.off()
 
 
-############ optimization of Lambda
+############ optimization of Lambda and Alpha
 
 alphasOfInterest<-seq(0,1,by=0.1) #or something similar
 #step 1: do all crossvalidations for each alpha
