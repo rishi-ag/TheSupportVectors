@@ -7,7 +7,7 @@ if(!require("dplyr"))install.packages("dplyr")
 if(!require("ggthemes"))install.packages("ggthemes")
 
 
-# setwd("D:/master/kaggle/TheSupportVectors")
+ setwd("D:/master/kaggle/TheSupportVectors")
 source("code/library.R")
 
 # Function for random forest
@@ -16,32 +16,32 @@ compare.k <- function(k, train, label) {
     model <- randomForest(x = train, y = label, mtry = k)
     # error rate is computed from out of bag elements, so it's a cross-val error
     rfor.error<-sum(model$predicted!=label)/length(label)
-    return(rfor.error)
+    return(model$err.rate[dim(model$err.rate)[1],])
 }
 
-unify<-function(data,vector,text){
-    nobs<-dim(data)[1]
-    out<-rep(0,nobs)
-    for (j in 1:nobs){
-        for (i in seq_along(vector)){
-            out[j]<-paste0(out[j],data[[paste0(text,as.character(vector[i]))]][j])
-        } 
-    }
-    return(as.factor(out))
-}
 
 #get data for rforest
 train.data <- get.train.data()
-labels <- train.data[[1]]
-features <- train.data[[2]]
+labels <- as.factor(train.data[[1]])
+features <- train.data[[3]] #standarized data
 
+features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
+
+#subset data
+features<-features[1:5000,]
+labels<-labels[1:5000]
+
+#one model
+#model <- randomForest(x = features, y = labels, mtry = 12)
 
 # Bounds for mtry parameter (max of variables per step)
 mink<-round(sqrt(dim(features)[2])/2)
 maxk<-round(dim(features)[2]/2)
-#model<-randomForest(x = features.train.red, y = labels.train)
-#error<-sum(model$predicted!=labels.train)/length(labels.train)
 
+
+
+
+# Initial check
 #set up cluster
 cores <- detectCores()
 cl <- makeCluster(cores)
@@ -56,8 +56,11 @@ system.time(rfor.perf<- parSapply(cl, seq(mink,maxk, 1),
 
 stopCluster(cl)
 
+
+
+
 #create and write error data frame to file 
-comparison <- data.frame(k = seq(mink, maxk, 2), feat.err = rfor.perf)
+comparison <- data.frame(k = seq(mink, maxk, 1), feat.err = rfor.perf)
 
 write.csv(x = comparison, file = "data/rfor/rfor_data_error.csv")
 

@@ -42,7 +42,7 @@ preprocess <- function() {
   #remove aspect var
   features.train.std <- select(features.train.std, -aspect_std)
   features.test.std <- select(features.test.std, -aspect_std)
-    
+
   #save files to /data
   write.csv(x = features.train.std, file = "data/train_features_std.csv", row.names = FALSE)
   write.csv(x = labels.train, file = "data/train_labels.csv", row.names = FALSE)
@@ -62,10 +62,11 @@ compare.k <- function(k, train, label) {
 
 get.train.data <- function() {
   labels <- read.csv("data/train_labels.csv", header = T,
-                     nrows = 50000)[,1]
+                     nrows = 50000)[,1])
   features <- read.csv("data/train_features.csv", header = T, nrows = 50000)
   
   features.std <- read.csv("data/train_features_std.csv", header = T, nrows = 50000)
+  
   
   return(list(labels, features, features.std))
 }
