@@ -1,0 +1,98 @@
+if(!require("randomForest"))install.packages("randomForest")
+if(!require("doParallel"))install.packages("doParallel")
+if(!require("reshape2"))install.packages("reshape2")
+if(!require("ggplot2"))install.packages("ggplot2")
+if(!require("caret"))install.packages("caret")
+if(!require("dplyr"))install.packages("dplyr")
+if(!require("ggthemes"))install.packages("ggthemes")
+
+
+# setwd("D:/master/kaggle/TheSupportVectors")
+source("code/library.R")
+
+# Function for random forest
+compare.k <- function(k, train, label) {
+    #compare errors for different k maximum variables on features
+    model <- randomForest(x = train, y = label, mtry = k)
+    # error rate is computed from out of bag elements, so it's a cross-val error
+    rfor.error<-sum(model$predicted!=label)/length(label)
+    return(rfor.error)
+}
+
+unify<-function(data,vector,text){
+    nobs<-dim(data)[1]
+    out<-rep(0,nobs)
+    for (j in 1:nobs){
+        for (i in seq_along(vector)){
+            out[j]<-paste0(out[j],data[[paste0(text,as.character(vector[i]))]][j])
+        } 
+    }
+    return(as.factor(out))
+}
+
+#get data for rforest
+train.data <- get.train.data()
+labels <- train.data[[1]]
+features <- train.data[[2]]
+
+
+# Bounds for mtry parameter (max of variables per step)
+mink<-round(sqrt(dim(features)[2])/2)
+maxk<-round(dim(features)[2]/2)
+#model<-randomForest(x = features.train.red, y = labels.train)
+#error<-sum(model$predicted!=labels.train)/length(labels.train)
+
+#set up cluster
+cores <- detectCores()
+cl <- makeCluster(cores)
+clusterExport(cl, list("labels", "features","mink","maxk",
+                       "compare.k", "randomForest"), envir = environment())
+registerDoParallel(cl)
+
+
+#call function to compare k error rates on features and standardised features
+system.time(rfor.perf<- parSapply(cl, seq(mink,maxk, 1), 
+                                  function(x) compare.k(x, features, labels)))
+
+stopCluster(cl)
+
+#create and write error data frame to file 
+comparison <- data.frame(k = seq(mink, maxk, 2), feat.err = rfor.perf)
+
+write.csv(x = comparison, file = "data/rfor/rfor_data_error.csv")
+
+#read comparison file
+comparison <- read.csv(file = "data/rfor/rfor_data_error.csv", header = T)[,-1]
+
+#melt daa for graph
+comparison.long <- melt(data = comparison, id.vars = "k", 
+                        measure.vars = c("feat.err"),
+                        variable.name = "feature_type", value.name = "error")
+
+
+
+#plot
+plot1 <- ggplot(data = comparison.long, aes(x = k,y = error, color = feature_type )) +
+    geom_line(size = 0.5) + 
+    geom_point(size = 3) + 
+    scale_x_continuous(breaks= seq(mink,maxk,1)) + 
+    ggtitle("Mtry error ") +
+    scale_color_wsj(name  ="Feature Type", labels=c("Raw"))
+
+#save plot
+jpeg(filename = 'plots/RforMtryErrorFeature.jpg', units = "in", width = 5, height = 5, res = 400)
+plot1
+dev.off()
+
+
+# predict using best k on best data set
+best.k = comparison$k[which.min(comparison$feat.err)]
+test.data <- get.test.data()
+test.feat.raw <- test.data[[1]]
+model <- randomForest(x = train, y = label, mtry = best.k)
+predict<-predict(model,test.feat.raw)
+
+id <- read.csv(file = "data/Kaggle_Covertype_test_id.csv", header = T)[,1] 
+
+prediction <- data.frame(id =id, Cover_Type = predict)
+write.csv(x = prediction, file = "data/rfor/rfor_test_prediction.csv", row.names = FALSE)
