@@ -7,7 +7,7 @@ if(!require("dplyr"))install.packages("dplyr")
 if(!require("ggthemes"))install.packages("ggthemes")
 
 
- setwd("D:/master/kaggle/TheSupportVectors")
+# setwd("D:/master/kaggle/TheSupportVectors")
 source("code/library.R")
 
 # Function for random forest
@@ -28,17 +28,15 @@ features <- train.data[[3]] #standarized data
 features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
 
 #subset data
-features<-features[1:5000,]
-labels<-labels[1:5000]
+#features<-features[1:5000,]
+#labels<-labels[1:5000]
 
 #one model
 #model <- randomForest(x = features, y = labels, mtry = 12)
 
 # Bounds for mtry parameter (max of variables per step)
 mink<-round(sqrt(dim(features)[2])/2)
-maxk<-round(dim(features)[2]/2)
-
-
+maxk<-round(dim(features)[2]/1.5)
 
 
 # Initial check
@@ -51,7 +49,7 @@ registerDoParallel(cl)
 
 
 #call function to compare k error rates on features and standardised features
-system.time(rfor.perf<- parSapply(cl, seq(mink,maxk, 1), 
+system.time(rfor.perf<- parSapply(cl, seq(mink,maxk, 2), 
                                   function(x) compare.k(x, features, labels)))
 
 stopCluster(cl)
@@ -60,7 +58,7 @@ stopCluster(cl)
 
 
 #create and write error data frame to file 
-comparison <- data.frame(k = seq(mink, maxk, 1), feat.err = rfor.perf)
+comparison <- data.frame(k = seq(mink, maxk, 2), feat.err = t(rfor.perf))
 
 write.csv(x = comparison, file = "data/rfor/rfor_data_error.csv")
 
@@ -69,7 +67,8 @@ comparison <- read.csv(file = "data/rfor/rfor_data_error.csv", header = T)[,-1]
 
 #melt daa for graph
 comparison.long <- melt(data = comparison, id.vars = "k", 
-                        measure.vars = c("feat.err"),
+                        measure.vars = c("feat.err.OOB","feat.err.1","feat.err.2","feat.err.3",
+                                         "feat.err.4","feat.err.5","feat.err.6","feat.err.7"),
                         variable.name = "feature_type", value.name = "error")
 
 
@@ -78,9 +77,9 @@ comparison.long <- melt(data = comparison, id.vars = "k",
 plot1 <- ggplot(data = comparison.long, aes(x = k,y = error, color = feature_type )) +
     geom_line(size = 0.5) + 
     geom_point(size = 3) + 
-    scale_x_continuous(breaks= seq(mink,maxk,1)) + 
+    scale_x_continuous(breaks= seq(mink,maxk,2)) + 
     ggtitle("Mtry error ") +
-    scale_color_wsj(name  ="Feature Type", labels=c("Raw"))
+    scale_color_wsj(name  ="Feature Type", labels=levels(comparison.long$feature_type))
 
 #save plot
 jpeg(filename = 'plots/RforMtryErrorFeature.jpg', units = "in", width = 5, height = 5, res = 400)
@@ -89,13 +88,16 @@ dev.off()
 
 
 # predict using best k on best data set
-best.k = comparison$k[which.min(comparison$feat.err)]
+best.k = comparison$k[which.min(comparison$feat.err.OOB)]
 test.data <- get.test.data()
-test.feat.raw <- test.data[[1]]
-model <- randomForest(x = train, y = label, mtry = best.k)
-predict<-predict(model,test.feat.raw)
+test.feat <- test.data[[2]]
+test.feat[,10:53]<-as.data.frame(apply(test.feat[,10:53],2,as.factor))
+model <- randomForest(x = features, y = labels, mtry = best.k)
+predict<-predict(model,test.feat)
 
 id <- read.csv(file = "data/Kaggle_Covertype_test_id.csv", header = T)[,1] 
 
 prediction <- data.frame(id =id, Cover_Type = predict)
 write.csv(x = prediction, file = "data/rfor/rfor_test_prediction.csv", row.names = FALSE)
+
+saveRDS(model,"rforest_model.rds")

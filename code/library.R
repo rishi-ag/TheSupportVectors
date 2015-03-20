@@ -62,7 +62,7 @@ compare.k <- function(k, train, label) {
 
 get.train.data <- function() {
   labels <- read.csv("data/train_labels.csv", header = T,
-                     nrows = 50000)[,1])
+                     nrows = 50000)[,1]
   features <- read.csv("data/train_features.csv", header = T, nrows = 50000)
   
   features.std <- read.csv("data/train_features_std.csv", header = T, nrows = 50000)
