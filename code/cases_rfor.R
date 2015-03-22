@@ -14,6 +14,9 @@ maxk<-34
 labels1<-as.factor(1*(labels==1))
 
 
+#model 3 rfor optimized for ntree
+
+
 
 #### make models for each specific label
 
@@ -31,3 +34,5 @@ probs<-foreach(i = i,
                .packages=c("randomForest")) %dopar% {
                    predict(models[[i]], test.feat,type="prob")
                }
+
+
