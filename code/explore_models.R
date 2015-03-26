@@ -1,7 +1,6 @@
 ## Course project machine learning, Data Science 
 
 if(!require("randomForest"))install.packages("randomForest")
-if(!require("doParallel"))install.packages("doParallel")
 if(!require("reshape2"))install.packages("reshape2")
 if(!require("ggplot2"))install.packages("ggplot2")
 if(!require("caret"))install.packages("caret")
@@ -35,13 +34,17 @@ unify<-function(data,vector,text){
 train.data <- get.train.data()
 labels <- as.factor(train.data[[1]])
 features <- train.data[[3]] #standarized data
-features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
+#features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
 test.data <- get.test.data()
 test.feat <- test.data[[2]] #standarized data
-test.feat[,10:53]<-as.data.frame(apply(test.feat[,10:53],2,as.factor))
+#test.feat[,10:53]<-as.data.frame(apply(test.feat[,10:53],2,as.factor))
 
 prova<-unify(features,1:40,"soil_type_")
 area<-unify(features,1:4,"wild_area_")
+features<-features[,c(1:9,54,55)]
+features$soil<-prova
+features$area<-area
+
 
 # PCA
 pca<-prcomp(features)
@@ -75,17 +78,16 @@ mod_code<-c('AdaBag', 'treebag', 'bagFDA','logicBag','avNNet','rf','ada','glmboo
 set.seed(10)
 
 # preparing the parallelization
-noCores <- 4
+noCores <- detectCores()-1
 cl <- makeCluster(noCores, type="SOCK", outfile="") 
 registerDoSNOW(cl)
 
-models_outcome<-foreach(mod = mod_code[2:4], 
-        .combine=rbind, .packages=c("caret", "dplyr")) %dopar% {
+models_outcome<-foreach(mod = 2:4, 
+        .combine=rbind, .packages=c("caret")) %dopar% {
             
-        # some helpful debugging messages
         cat("The current model is ", mod, "\n")
         # model
-        model<-train(labels~.,data=trainset,method=mod)
+        model<-train(labels~.,data=trainset,method=mod_code[mod])
         pred<-predict(model,newdata=trainstest)
         res<-confusionMatrix(pred,testset$labels)
         result<-c(res$overall,res$byClass)
