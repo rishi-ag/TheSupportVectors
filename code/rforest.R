@@ -5,11 +5,10 @@ if(!require("ggplot2"))install.packages("ggplot2")
 if(!require("caret"))install.packages("caret")
 if(!require("dplyr"))install.packages("dplyr")
 if(!require("ggthemes"))install.packages("ggthemes")
-if (!require("foreach")) install.packages("foreach")
-if (!require("doSNOW")) install.packages("doSNOW")
+if (!require("caret")) install.packages("caret")
+if (!require("rattle")) install.packages("rattle")
 
-
-# setwd("D:/master/kaggle/TheSupportVectors")
+setwd("D:/master/kaggle/TheSupportVectors")
 source("code/library.R")
 
 # Function for random forest
@@ -34,7 +33,21 @@ train.data <- get.train.data()
 labels <- as.factor(train.data[[1]])
 features <- train.data[[3]] #standarized data
 
-features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
+#features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
+
+
+# PCA
+pca<-prcomp(features)
+features<-pca$x
+vectors<-pca$rotation
+var<-diag(cov(features))/sum(diag(cov(features)))
+cumvar<-cumsum(var)
+barplot(cumvar)
+nvars<-sum(cumvar<0.99)
+sum(cumvar<0.95)
+# Get only the 99% variance variables from PCA variables
+features<-features[,1:nvars]
+vectors<-vectors[,1:nvars]
 
 
 #subset data
