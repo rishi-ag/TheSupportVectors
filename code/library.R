@@ -123,7 +123,7 @@ preprocess <- function() {
   #remove aspect var
   features.train.std <- select(features.train.std, -aspect_std)
   features.test.std <- select(features.test.std, -aspect_std)
-    
+
   #save files to /data
   write.csv(x = train.features.std, file = "data/train_features_std.csv", row.names = FALSE)
   write.csv(x = train.labels, file = "data/train_labels.csv", row.names = FALSE)

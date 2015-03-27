@@ -5,9 +5,10 @@ if(!require("ggplot2"))install.packages("ggplot2")
 if(!require("caret"))install.packages("caret")
 if(!require("dplyr"))install.packages("dplyr")
 if(!require("ggthemes"))install.packages("ggthemes")
+if (!require("caret")) install.packages("caret")
+if (!require("rattle")) install.packages("rattle")
 
-
-# setwd("D:/master/kaggle/TheSupportVectors")
+setwd("D:/master/kaggle/TheSupportVectors")
 source("code/library.R")
 
 # Function for random forest
@@ -16,32 +17,53 @@ compare.k <- function(k, train, label) {
     model <- randomForest(x = train, y = label, mtry = k)
     # error rate is computed from out of bag elements, so it's a cross-val error
     rfor.error<-sum(model$predicted!=label)/length(label)
-    return(rfor.error)
+    return(model$err.rate[dim(model$err.rate)[1],])
 }
-
-unify<-function(data,vector,text){
-    nobs<-dim(data)[1]
-    out<-rep(0,nobs)
-    for (j in 1:nobs){
-        for (i in seq_along(vector)){
-            out[j]<-paste0(out[j],data[[paste0(text,as.character(vector[i]))]][j])
-        } 
-    }
-    return(as.factor(out))
+# Function for random forest
+compare.nt <- function(nt, k,train, label) {
+    #compare errors for different k maximum variables on features
+    model <- randomForest(x = train, y = label, mtry = k,ntree=nt)
+    # error rate is computed from out of bag elements, so it's a cross-val error
+    rfor.error<-sum(model$predicted!=label)/length(label)
+    return(model$err.rate[dim(model$err.rate)[1],])
 }
 
 #get data for rforest
 train.data <- get.train.data()
-labels <- train.data[[1]]
-features <- train.data[[2]]
+labels <- as.factor(train.data[[1]])
+features <- train.data[[3]] #standarized data
 
+#features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
+
+
+# PCA
+pca<-prcomp(features)
+features<-pca$x
+vectors<-pca$rotation
+var<-diag(cov(features))/sum(diag(cov(features)))
+cumvar<-cumsum(var)
+barplot(cumvar)
+nvars<-sum(cumvar<0.99)
+sum(cumvar<0.95)
+# Get only the 99% variance variables from PCA variables
+features<-features[,1:nvars]
+vectors<-vectors[,1:nvars]
+
+
+#subset data
+#features<-features[1:5000,]
+#labels<-labels[1:5000]
+
+#one model
+#model <- randomForest(x = features, y = labels, mtry = 12)
 
 # Bounds for mtry parameter (max of variables per step)
-mink<-round(sqrt(dim(features)[2])/2)
-maxk<-round(dim(features)[2]/2)
-#model<-randomForest(x = features.train.red, y = labels.train)
-#error<-sum(model$predicted!=labels.train)/length(labels.train)
+mink<-round(sqrt(dim(features)[2]))
+maxk<-round(dim(features)[2]/1.5)
+#mink<-28
+#maxk<-55
 
+# Initial check
 #set up cluster
 cores <- detectCores()
 cl <- makeCluster(cores)
@@ -51,22 +73,26 @@ registerDoParallel(cl)
 
 
 #call function to compare k error rates on features and standardised features
-system.time(rfor.perf<- parSapply(cl, seq(mink,maxk, 1), 
+system.time(rfor.perf<- parSapply(cl, seq(mink,maxk, 2), 
                                   function(x) compare.k(x, features, labels)))
 
 stopCluster(cl)
 
-#create and write error data frame to file 
-comparison <- data.frame(k = seq(mink, maxk, 2), feat.err = rfor.perf)
 
-write.csv(x = comparison, file = "data/rfor/rfor_data_error.csv")
+
+
+#create and write error data frame to file 
+comparison <- data.frame(k = seq(mink, maxk, 2), feat.err = t(rfor.perf))
+
+write.csv(x = comparison, file = "data/rfor/rfor_data_error2.csv")
 
 #read comparison file
-comparison <- read.csv(file = "data/rfor/rfor_data_error.csv", header = T)[,-1]
+comparison <- read.csv(file = "data/rfor/rfor_data_error2.csv", header = T)[,-1]
 
 #melt daa for graph
 comparison.long <- melt(data = comparison, id.vars = "k", 
-                        measure.vars = c("feat.err"),
+                        measure.vars = c("feat.err.OOB","feat.err.1","feat.err.2","feat.err.3",
+                                         "feat.err.4","feat.err.5","feat.err.6","feat.err.7"),
                         variable.name = "feature_type", value.name = "error")
 
 
@@ -75,24 +101,134 @@ comparison.long <- melt(data = comparison, id.vars = "k",
 plot1 <- ggplot(data = comparison.long, aes(x = k,y = error, color = feature_type )) +
     geom_line(size = 0.5) + 
     geom_point(size = 3) + 
-    scale_x_continuous(breaks= seq(mink,maxk,1)) + 
+    scale_x_continuous(breaks= seq(mink,maxk,2)) + 
     ggtitle("Mtry error ") +
-    scale_color_wsj(name  ="Feature Type", labels=c("Raw"))
+    scale_color_wsj(name  ="Feature Type", labels=levels(comparison.long$feature_type))
 
 #save plot
-jpeg(filename = 'plots/RforMtryErrorFeature.jpg', units = "in", width = 5, height = 5, res = 400)
+jpeg(filename = 'plots/RforMtryErrorFeature2.jpg', units = "in", width = 5, height = 5, res = 400)
 plot1
 dev.off()
 
 
 # predict using best k on best data set
-best.k = comparison$k[which.min(comparison$feat.err)]
+best.k = comparison$k[which.min(comparison$feat.err.OOB)]
 test.data <- get.test.data()
-test.feat.raw <- test.data[[1]]
-model <- randomForest(x = train, y = label, mtry = best.k)
-predict<-predict(model,test.feat.raw)
+test.feat <- test.data[[2]]
+test.feat[,10:53]<-as.data.frame(apply(test.feat[,10:53],2,as.factor))
+model <- randomForest(x = features, y = labels, mtry = best.k)
+predict<-predict(model,test.feat)
 
 id <- read.csv(file = "data/Kaggle_Covertype_test_id.csv", header = T)[,1] 
 
 prediction <- data.frame(id =id, Cover_Type = predict)
-write.csv(x = prediction, file = "data/rfor/rfor_test_prediction.csv", row.names = FALSE)
+write.csv(x = prediction, file = "data/rfor/rfor_test_prediction2.csv", row.names = FALSE)
+
+saveRDS(model,"rforest_model2.rds")
+# model1: k=28 optim4to28
+# model2: k=34 optim28to54
+
+#### make models for each specific label
+
+best.k<-34
+nlabels<-length(levels(labels))
+models<-list()
+predicts<-list()
+probs<-list()
+i<-1:nlabels
+#set up cluster
+cores <- detectCores()
+cl <- makeCluster(cores, type="SOCK", outfile="")
+registerDoSNOW(cl)
+
+models<-foreach(i = i,
+                .packages=c("randomForest")) %dopar% {
+                    label<-as.factor(i*(labels==levels(labels)[i]))
+                    randomForest(x = features, y = label, mtry = best.k)
+                }
+predicts<-foreach(i = i,
+                  .packages=c("randomForest")) %dopar% {
+                      predict(models[[i]], test.feat)
+                  }
+probs<-foreach(i = i,
+                  .packages=c("randomForest")) %dopar% {
+                      predict(models[[i]], test.feat,type="prob")
+}
+
+stopCluster(cl)
+
+saveRDS(models,"rforest_models.rds")
+saveRDS(predicts,"rforest_predicts.rds")
+saveRDS(probs,"rforest_probs.rds")
+
+
+
+probs<-readRDS("data/rforest_probs.rds")
+
+probs_class<-matrix(NA,dim(test.feat)[1],length(levels(labels)))
+for (i in 1:7){
+    probs_class[,i]<-probs[[i]][,2]
+}
+predict<-apply(probs_class,1,which.max)
+predict_prob<-apply(probs_class,1,max)
+
+id <- read.csv(file = "data/Kaggle_Covertype_test_id.csv", header = T)[,1] 
+
+prediction <- data.frame(id =id, Cover_Type = predict)
+write.csv(x = prediction, file = "data/rfor/rfor_test_prediction_agg.csv", row.names = FALSE)
+
+
+
+### optimize for ntree
+
+# Bounds for mtry parameter (max of variables per step)
+minnt<-400
+maxnt<-1000
+k<-34
+
+# Initial check
+#set up cluster
+cores <- detectCores()
+cl <- makeCluster(cores)
+clusterExport(cl, list("labels","k", "features","minnt","maxnt",
+                       "compare.nt", "randomForest"), envir = environment())
+registerDoParallel(cl)
+
+
+#call function to compare k error rates on features and standardised features
+system.time(rfor.perf<- parSapply(cl, seq(minnt,maxnt, 100), 
+                                  function(x) compare.nt(x, k,features, labels)))
+
+stopCluster(cl)
+
+
+
+#create and write error data frame to file 
+comparison <- data.frame(ntree = seq(minnt, maxnt, 100), feat.err = t(rfor.perf))
+
+write.csv(x = comparison, file = "data/rfor/rfor_data_nterror.csv")
+
+#read comparison file
+comparison <- read.csv(file = "data/rfor/rfor_data_nterror.csv", header = T)[,-1]
+
+#melt daa for graph
+comparison.long <- melt(data = comparison, id.vars = "ntree", 
+                        measure.vars = c("feat.err.OOB","feat.err.1","feat.err.2","feat.err.3",
+                                         "feat.err.4","feat.err.5","feat.err.6","feat.err.7"),
+                        variable.name = "feature_type", value.name = "error")
+
+
+
+#plot
+plot1 <- ggplot(data = comparison.long, aes(x = ntree,y = error, color = feature_type )) +
+    geom_line(size = 0.5) + 
+    geom_point(size = 3) + 
+    scale_x_continuous(breaks= seq(minnt,maxnt,100)) + 
+    ggtitle("Ntree error ") +
+    scale_color_wsj(name  ="Feature Type", labels=levels(comparison.long$feature_type))
+
+#save plot
+jpeg(filename = 'plots/RforNtreeErrorFeature.jpg', units = "in", width = 5, height = 5, res = 400)
+plot1
+dev.off()
+
