@@ -1,39 +1,40 @@
-
 setwd("~/GitHub/TheSupportVectors")
 source("code/library.R")
 
-
-
-
-
-
+#Step 1: Getting the labels and the standardized features
 train <- get.train.data()
-str(train)
 train.label <- train[[1]]
-#labels_df <- as.data.frame(train.label)
-train.feat <- train[[2]]
-train.feat_st <- train[[3]]
+train.feat_st <- train[[3]] # getting the standardized features of the training set
 
 
+#Step2: PCA
+#We use the prcomp function which calculation is done by a singular
+#value decomposition of the (centered) data matrix. Although the topic is quite
+#ambiguous, it seems like the specific technique is appropriate for handling
+#binary (categorical) data.
 
-
-# We use the prcomp function which calculation is done by a singular value decomposition
-#  of the (centered) data matrix. Although the topic is quite ambiguous, it seems like
-# the specific technique is appropriate for handling binary (categorical) data.
 pca <- prcomp(x=train.feat_st)
 
-?prcomp
-
 retr_values <- pca$x
-dim(retr_values)
 rot<-pca$rotation
 covpca<-cov(retr_values)
 
 sd_variables <- pca$sdev
-sort(sd_variables, decreasing = TRUE)
+sd_variables <- sort(sd_variables, decreasing = TRUE)
+
 Variability <- sum(sd_variables)
-sum(sd_variables[1:20])
 
-class(sd_variables)
+```
 
+#Analysis of PCA results
+"""
+The prcomp function returns an object of class prcomp, which have some methods available.
 
+The print method returns the standard deviation of each of the PCs, and their rotation (or loadings), which are the coefficients of the linear combinations of the continuous variables.
+
+The plot method returns a plot of the variances (y-axis) associated with the PCs (x-axis). The Figure created is useful to decide how many PCs to retain for further analysis.we can see that the first two PCs explain most of the variability in the data.
+"""
+StDev_princomp <- print(pca)
+plot(pca, type = "l")
+
+summary(pca)
