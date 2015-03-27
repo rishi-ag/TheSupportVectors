@@ -19,12 +19,14 @@ Main summary of feature data.
 source("code/library.R")
 train.data <- get.train.data()
 labels <- as.factor(train.data[[1]])
-features <- train.data[[2]]
 
+features <- train.data[[2]]
+features.std<-train.data[[3]]
 
 ```
 
-`r sjt.df(features, alternateRowColors=TRUE,no.output=TRUE)$knitr`
+`r sjt.df(features, title="Summary of feature data",alternateRowColors=TRUE,no.output=TRUE)$knitr`
+`r sjt.pca(features2, title="Summary of PCA", alternateRowColors=TRUE,no.output=TRUE)$knitr`
 
 # Random forest
 

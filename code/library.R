@@ -6,20 +6,6 @@ library("psych")
 # setwd("D:/master/kaggle/TheSupportVectors")
 
 
-std.ang <- function(x) {
-  #function to standrdize angular data 
-  m.sin <- mean(sin(x))
-  m.cos <- mean(cos(x))
-  
-  m.x <- atan(m.sin/m.cos)
-  
-  R <- sqrt(m.sin^2 + m.cos^2)
-  
-  s.d <- sqrt(-2 * log(R))
-  
-  return((x - m.x) / s.d)
-}
-
 rescale.features <- function(train.feat, test.feat) {
   #function resclaes all continuous features from -1 to 1
   .rescale.col <- function(x, old.min, old.max, new.min = -1, new.max = 1) {
