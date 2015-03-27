@@ -87,16 +87,6 @@ preprocess <- function() {
   features.test.std$sin<-sin(features.test.std[,2])
   features.test.std$cos<-cos(features.test.std[,2])
 
-  #Convert slope and aspect to radians
-  train.features.std[,2:3] <- train.features.std[,2:3] * (pi/180)
-  test.features.std[,2:3] <- test.features.std[,2:3] * (pi/180)
-  
-  #There are 10 quantitative variables. Standardise them
-  train.features.std[,2:3] <- apply(train.features.std[,2:3], 2, function(x) std.ang(x))
-  train.features.std[,c(1, 4:10)] <- apply(train.features.std[,c(1, 4:10)], 2, function(x) (x - mean(x)) / sd(x))
-  test.features.std[,2:3] <- apply(test.features.std[,2:3], 2, function(x) std.ang(x))
-  test.features.std[,c(1, 4:10)] <- apply(test.features.std[,c(1, 4:10)], 2, function(x) (x - mean(x)) / sd(x)) 
-
   #rename standardised variables
   names(train.features.std)[1:10] <- paste0(names(train.features.std)[1:10], "_std")
   names(test.features.std)[1:10] <- paste0(names(test.features.std)[1:10], "_std")

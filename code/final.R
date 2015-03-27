@@ -1,7 +1,8 @@
 # Machine Learning Project, Support Vectors Group
-# Rishab Agnigorti, Anestis Papanikolau, Joan Verdu
+# Rishabh Agnighotri, Anestis Papanikolaou, Joan Verdu
 
-# Code to produce the submitted forecast
+# This algorithm needs the following files to be previouly set into a /data
+# subfolder: Kaggle_Covertype_training.csv, Kaggle_Covertype_test.csv
 
 #---------------------#
 ### Package loading ###
@@ -14,7 +15,6 @@ if(!require("caret"))install.packages("caret")
 if(!require("dplyr"))install.packages("dplyr")
 if(!require("ggthemes"))install.packages("ggthemes")
 if (!require("caret")) install.packages("caret")
-if (!require("rattle")) install.packages("rattle")
 if (!require("psych")) install.packages("psych")
 
 
@@ -89,29 +89,19 @@ preprocess <- function() {
     test.features <- select(test.data, -id)
     test.features.std <- test.features
     
-    #Standardise function
+    #Standardise
     #Convert aspect to radians
-    features.train.std[,2] <- features.train.std[,2] * (pi/180)
-    features.test.std[,2] <- features.test.std[,2] * (pi/180)
+    train.features.std[,2] <- train.features.std[,2] * (pi/180)
+    test.features.std[,2] <- test.features.std[,2] * (pi/180)
     
     #There are 10 quantitative variables. Standardise them. Aspect converted to sin and cos
-    features.train.std[,c(1, 3:10)] <- apply(features.train.std[,c(1, 3:10)], 2, function(x) (x - mean(x)) / sd(x))
-    features.train.std$sin<-sin(features.train.std[,2])
-    features.train.std$cos<-cos(features.train.std[,2])
+    train.features.std[,c(1, 3:10)] <- apply(train.features.std[,c(1, 3:10)], 2, function(x) (x - mean(x)) / sd(x))
+    train.features.std$sin<-sin(train.features.std[,2])
+    train.features.std$cos<-cos(train.features.std[,2])
     
-    features.test.std[,c(1, 3:10)] <- apply(features.test.std[,c(1, 3:10)], 2, function(x) (x - mean(x)) / sd(x)) 
-    features.test.std$sin<-sin(features.test.std[,2])
-    features.test.std$cos<-cos(features.test.std[,2])
-    
-    #Convert slope and aspect to radians
-    train.features.std[,2:3] <- train.features.std[,2:3] * (pi/180)
-    test.features.std[,2:3] <- test.features.std[,2:3] * (pi/180)
-    
-    #There are 10 quantitative variables. Standardise them
-    train.features.std[,2:3] <- apply(train.features.std[,2:3], 2, function(x) std.ang(x))
-    train.features.std[,c(1, 4:10)] <- apply(train.features.std[,c(1, 4:10)], 2, function(x) (x - mean(x)) / sd(x))
-    test.features.std[,2:3] <- apply(test.features.std[,2:3], 2, function(x) std.ang(x))
-    test.features.std[,c(1, 4:10)] <- apply(test.features.std[,c(1, 4:10)], 2, function(x) (x - mean(x)) / sd(x)) 
+    test.features.std[,c(1, 3:10)] <- apply(test.features.std[,c(1, 3:10)], 2, function(x) (x - mean(x)) / sd(x)) 
+    test.features.std$sin<-sin(test.features.std[,2])
+    test.features.std$cos<-cos(test.features.std[,2])
     
     #rename standardised variables
     names(train.features.std)[1:10] <- paste0(names(train.features.std)[1:10], "_std")
@@ -123,8 +113,8 @@ preprocess <- function() {
     test.features.scale <- feat.list[[2]]
     
     #remove aspect var
-    features.train.std <- select(features.train.std, -aspect_std)
-    features.test.std <- select(features.test.std, -aspect_std)
+    train.features.std <- select(train.features.std, -aspect_std)
+    test.features.std <- select(test.features.std, -aspect_std)
     
     #save files to /data
     write.csv(x = train.features.std, file = "data/train_features_std.csv", row.names = FALSE)
@@ -238,9 +228,9 @@ features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
     predict<-predict(model,test.feat)
     
     # Prepare data for submission
-    id <- read.csv(file = "data/Kaggle_Covertype_test_id.csv", header = T)[,1] 
+    id <- seq(50001,150000,1) 
     prediction <- data.frame(id =id, Cover_Type = predict)
-    write.csv(x = prediction, file = "data/rfor/rfor_test_prediction2.csv", row.names = FALSE)
+    write.csv(x = prediction, file = "data/rfor/rfor_test_prediction.csv", row.names = FALSE)
 
 
 
