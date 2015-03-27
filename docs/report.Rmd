@@ -1,0 +1,21 @@
+---
+title: "Machine Learning Project Report"
+author: "Joan Verdú"
+date: "Friday, March 27, 2015"
+output: html_document
+---
+
+# Random forest
+
+Random forest classification is based on an extension of classification trees. Each step, a bagged sample from the data is used, and a subset of the data features are used. This proportion of features to be used can be tuned using the `mtry` parameter at the `randomForest` function of `randomForest` R package.
+So we tuned this parameter to optimize the performance of the classification. Note that no cross-validation is needed in random forest, because it's internally done using the Out of Bag samples, thus, data not used at each step of the tree.
+We used the standarized version of input data, as explained before.
+Here is the comparing performance using different `mtry` values.
+
+![optimization of mtry parameter, random forest](/plot/RforMtryErrorFeature.jpg)
+
+From mtry around 20, general error gets almost stabilized arround 10%. Recall we have 54 features in total, 44 of them binary factors related to soil and area types. Note classes 4 and 5 yield higher error than the other, but don't affect that much overall error, since they are minority in percent.
+Accuracy didn't improve if we just try around 30 features corresponding to first 30 eigenvectors from principal compoment analysis, so we decided to preserved the original data.
+
+
+
