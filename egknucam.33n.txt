@@ -1,0 +1,52 @@
+﻿Merge branch 'master' of https://github.com/rishi1226/TheSupportVectors
+
+Conflicts:
+	.Rhistory
+#
+# It looks like you may be committing a merge.
+# If this is not correct, please remove the file
+#	.git/MERGE_HEAD
+# and try again.
+
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch and 'origin/master' have diverged,
+# and have 1 and 18 different commits each, respectively.
+#   (use "git pull" to merge the remote branch into yours)
+#
+# All conflicts fixed but you are still merging.
+#
+# Changes to be committed:
+#	deleted:    .Rhistory
+#	new file:   code/cases_rfor.R
+#	deleted:    code/code.zip
+#	new file:   code/final.R
+#	modified:   code/glm.R
+#	modified:   code/library.R
+#	modified:   code/rforest.R
+#	modified:   data/rfor/rfor_data_error.csv
+#	new file:   data/rfor/rfor_data_error2.csv
+#	new file:   data/rfor/rfor_data_nterror.csv
+#	new file:   data/rfor/rfor_test_prediction.csv
+#	renamed:    data/knn/knn_test_prediction.csv -> data/rfor/rfor_test_prediction2.csv
+#	new file:   data/rfor_confusion.csv
+#	new file:   data/rforest_model.rds
+#	new file:   data/rforest_model2.rds
+#	new file:   data/rforest_models.rds
+#	new file:   data/rforest_predicts.rds
+#	new file:   data/rforest_probs.rds
+#	new file:   plots/RforMtryErrorFeature.jpg
+#	new file:   plots/RforMtryErrorFeature2.jpg
+#	new file:   plots/RforNtreeErrorFeature.jpg
+#	new file:   plots/importance_rfor.jpg
+#	new file:   plots/ntree_error_rate.png
+#	deleted:    reading/CompetitionInstructions.pdf
+#	deleted:    reading/CompetitionTeams.pdf
+#	deleted:    reading/USForestServiceVegetationRoosevelt.pdf
+#	deleted:    reading/forestmap.png
+#	new file:   report.Rmd
+#	new file:   report.html
+#
+

@@ -57,7 +57,6 @@ for(i in 1:11){
 }
 
 colnames(fine_results) <- c("Cost", "Gamma", "Support Vectors", "Error")
-fine_results
 
 test.feat.scale <- read.csv("data/test_features_scale.csv", header = T)
 pred <- predict(fine_grid_results[[1]], test.feat.scale)
