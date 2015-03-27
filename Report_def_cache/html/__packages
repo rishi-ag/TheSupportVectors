@@ -1,0 +1,10 @@
+base
+dplyr
+ggplot2
+ggthemes
+knitr
+psych
+reshape2
+rmarkdown
+sjPlot
+tidyr
