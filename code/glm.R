@@ -8,14 +8,15 @@ source("code/library.R")
 
 #get data for knn
 train.data <- get.train.data()
-labels <- train.data[[1]]
+labels <- as.factor(train.data[[1]])
 features <- train.data[[2]]
 features.std <- train.data[[3]]
+features.std[,10:53]<-as.data.frame(apply(features.std[,10:53],2,as.factor))
 
 
 #Try Lasso,  ElasticNet and KernelElasticNet
 # lambda 0 is LASSO, alpha 1 is Ridge
-model<-glmnet(x=as.matrix(features.std),y=labels,family="multinomial",lambda=0.5)
+model<-glmnet(x=as.matrix(features.std),y=labels,family="multinomial",lambda=0)
 #show selected variables
 model$beta
 plot(model)
@@ -64,7 +65,7 @@ overall.criterionthreshold<-optimumPerAlpha["cvup",posOfOptimum]
 
 # Step 4: Run with the optimal one
 model2<-glmnet(x=as.matrix(features.std),y=labels,family="multinomial",
-                 alpha=overall.alpha.min,lambda=overall.lambda.min)
+               alpha=overall.alpha.min,lambda=overall.lambda.min)
 
 #show selected variables
 model2$beta
@@ -88,5 +89,4 @@ write.csv(x = prediction, file = "data/glm/glm_test_prediction.csv", row.names =
 
 probs<- data.frame(id =id, Cover_Type = as.vector(prob))
 write.csv(x = probs, file = "data/glm/glm_test_probs.csv", row.names = FALSE)
-
 
