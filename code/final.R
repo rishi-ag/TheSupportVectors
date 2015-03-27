@@ -222,10 +222,11 @@ features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
     # predict using best k on best data set
     best.k = comparison$k[which.min(comparison$feat.err.OOB)]
     test.data <- get.test.data()
-    test.feat <- test.data[[2]]
+    test.feat <- test.data[[2]] #standarized
     test.feat[,10:53]<-as.data.frame(apply(test.feat[,10:53],2,as.factor))
     model <- randomForest(x = features, y = labels, mtry = best.k)
     predict<-predict(model,test.feat)
+    probs<-predict(model, test.feat,type="prob")
     
     # Prepare data for submission
     id <- seq(50001,150000,1) 

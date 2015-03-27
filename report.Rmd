@@ -2,7 +2,11 @@
 title: "Machine Learning Project Report"
 author: "Joan Verdú"
 date: "Friday, March 27, 2015"
-output: html_document
+output: 
+    html_document:
+        fig_width: 4
+        fig_height: 3
+        fig_caption: false
 ---
 
 ```{r, echo=FALSE, message=FALSE}
@@ -26,7 +30,7 @@ features.std<-train.data[[3]]
 ```
 
 `r sjt.df(features, title="Summary of feature data",alternateRowColors=TRUE,no.output=TRUE)$knitr`
-`r sjt.pca(features2, title="Summary of PCA", alternateRowColors=TRUE,no.output=TRUE)$knitr`
+
 
 # Random forest
 
@@ -40,8 +44,13 @@ Here is the comparing performance using different `mtry` values.
 
 ![optimization of mtry parameter, random forest](./plots/RforMtryErrorFeature.jpg)
 
-From mtry around 20, general error gets almost stabilized arround 10%. Recall we have 54 features in total, 44 of them binary factors related to soil and area types. Note classes 4 and 5 yield higher error than the other, but don't affect that much overall error, since they are minority in percent.
+From mtry around 30, general error gets almost stabilized arround 10%. Recall we have 54 features in total, 44 of them binary factors related to soil and area types. Note classes 4 and 5 yield higher error than the other, but don't affect that much overall error, since they are minority in percent.
 Accuracy didn't improve if we just try around 30 features corresponding to first 30 eigenvectors from principal compoment analysis, so we decided to preserved the original data.
+Different variations of random forest classifier were tried. For instance, previously processing PCA, and classifying over PCA features with added variance 99% didn't result in improved accuracy.
+Tuning the `ntree` parameter didn't improve the accuracy. As shown in next graphic, the standard ntree=500 already implies a maximum accuracy.
+
+![optimization of ntree parameter, random forest](./plots/ntree_error_rate.png)
+
 
 # Analysis
 Importance of measures can be shown by mean decrease of Gini coefficient.

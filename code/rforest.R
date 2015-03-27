@@ -118,6 +118,8 @@ test.feat <- test.data[[2]]
 test.feat[,10:53]<-as.data.frame(apply(test.feat[,10:53],2,as.factor))
 model <- randomForest(x = features, y = labels, mtry = best.k)
 predict<-predict(model,test.feat)
+plot(model$err.rate[,1],type="l",xlab="Number of trees",
+     ylab="OOB error rate",main="Error rate (random forest)")
 
 id <- read.csv(file = "data/Kaggle_Covertype_test_id.csv", header = T)[,1] 
 
@@ -231,4 +233,8 @@ plot1 <- ggplot(data = comparison.long, aes(x = ntree,y = error, color = feature
 jpeg(filename = 'plots/RforNtreeErrorFeature.jpg', units = "in", width = 5, height = 5, res = 400)
 plot1
 dev.off()
+
+# Retrieve model
+model<-readRDS("data/rforest_model2.rds")
+
 
