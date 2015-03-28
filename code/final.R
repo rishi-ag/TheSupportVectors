@@ -16,7 +16,7 @@ if(!require("dplyr"))install.packages("dplyr")
 if(!require("ggthemes"))install.packages("ggthemes")
 if (!require("caret")) install.packages("caret")
 if (!require("psych")) install.packages("psych")
-
+if(!require("modeest")) install.packages("modeest")
 
 #--------------------#
 ### Functions     ####
@@ -232,8 +232,25 @@ features[,10:53]<-as.data.frame(apply(features[,10:53],2,as.factor))
     id <- seq(50001,150000,1) 
     prediction <- data.frame(id =id, Cover_Type = predict)
     write.csv(x = prediction, file = "data/rfor/rfor_test_prediction.csv", row.names = FALSE)
-
-
-
-
-
+    
+    
+    ######
+    #Now we select a final prediction by pulling a majority vote of the three models that
+    #gave us the best results
+    ######
+    knn <- read.csv("data/knn/knn_test_prediction.csv", header = T)[,2]
+    rfor <- read.csv("data/rfor/rfor_test_prediction.csv", header = T)[,2]
+    svm <- read.csv("data/svm/svm_test_prediction8.csv", header = T)[,2]
+    
+    #DF with predctions from knn, randomforest and SVM
+    pred <- cbind(knn, rfor, svm)
+    
+    #Calculate majority vote
+    maj_vote <- apply(pred, 1, function(x) min(mfv(x)))
+    maj_vote <- unlist(maj_vote) 
+    maj_vote <- cbind(read.csv("data/Kaggle_Covertype_test_id.csv", header = T)[,1], maj_vote)
+    colnames(maj_vote) <- c("id", "Cover_Type")
+    
+    #Write file
+    write.csv(maj_vote, "data/maj_vote.csv", row.names = F)
+    

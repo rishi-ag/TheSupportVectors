@@ -1,4 +1,4 @@
-if(!require("modeest")) install.packages("modeest")
+
 
 setwd("c:/Users/Rishabh/Documents/Github/TheSupportVectors/")
 knn <- read.csv("data/knn/knn_test_prediction.csv", header = T)[,2]
