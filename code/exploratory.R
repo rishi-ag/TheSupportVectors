@@ -17,7 +17,7 @@ features <- train.data[[2]]
 features.std <- train.data[[3]]
 
 
-
+train<-data.frame(features,Cover_Type=as.factor(labels))
 # Data per category
 train<-tbl_df(train)
 #means and st.dev of explanatory variables per category
@@ -172,13 +172,13 @@ soil_pct_area<-subset(soil_pct_area,select=-nobs)
 
 # Correlation between variables
 
-pairs(train[,c(2:11,57)],pch=19,alpha=0.2)
+pairs(train[,c(1:10,57)],pch=19,alpha=0.2)
 
-cor<-cor(train[,c(2:11)])
+cor<-cor(features[,c(1:10)])
 plot3<-heatmap(cor)
 #save plot
-jpeg(filename = 'plots/heatmap_explore.jpg', units = "in", width = 5, height = 5, res = 400)
-plot3
+jpeg(filename = 'plots/heatmap.jpg', units = "in", width = 3, height = 3, res = 200)
+heatmap(cor)
 dev.off()
 
 # Categories vs areas
