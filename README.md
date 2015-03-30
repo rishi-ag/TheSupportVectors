@@ -1,3 +1,6 @@
 # TheSupportVectors
-1. Im attaching a url to an online 15 minutes tutorial to git. Will be useful for
-fluency in working with git. Cheers https://try.github.io/levels/1/challenges/1
+1. Final report is report_def.html
+2. Final code is final.R at /code folder
+3. SVM and Knn classifiers are located at svm_fine_tune.R and knn.R at /code folder
+4. Other documents by class at each folder
+
